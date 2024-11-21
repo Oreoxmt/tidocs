@@ -215,6 +215,7 @@ def __(Pandoc, get_reference_doc, md_contents, mo, table_contents):
 
     md_doc_data, md_doc_err = pandoc.run(
         [
+            "-o-",
             f"--reference-doc={reference_doc}",
             "--to=docx",
             "--from=markdown",
@@ -227,7 +228,7 @@ def __(Pandoc, get_reference_doc, md_contents, mo, table_contents):
     mo.stop(
         md_doc_err.decode("utf-8") != "",
         mo.md(
-            f"#### {mo.icon("ic:round-error-outline", color="darkorange", inline=True)} Failed to convert to Word.\n\n{md_doc_err.decode("utf-8")}."
+            f"#### {mo.icon("ic:round-error-outline", color="darkorange", inline=True)} Failed to convert to Word.\n\n{md_doc_err.decode("utf-8")}"
         )
         .center()
         .callout(kind="danger"),
@@ -236,6 +237,7 @@ def __(Pandoc, get_reference_doc, md_contents, mo, table_contents):
 
     table_doc_data, table_doc_err = Pandoc().run(
         [
+            "-o-",
             f"--reference-doc={reference_doc}",
             "--to=docx",
             "--from=html",
@@ -246,7 +248,7 @@ def __(Pandoc, get_reference_doc, md_contents, mo, table_contents):
     mo.stop(
         table_doc_err.decode("utf-8") != "",
         mo.md(
-            f"####{mo.icon("ic:round-error-outline", color="darkorange", inline=True)} Failed to convert to Word.\n\n{table_doc_err.decode("utf-8")}."
+            f"####{mo.icon("ic:round-error-outline", color="darkorange", inline=True)} Failed to convert to Word.\n\n{table_doc_err.decode("utf-8")}"
         )
         .center()
         .callout(kind="danger"),
