@@ -1,0 +1,32 @@
+[project]
+name = "tidocs"
+dynamic = ["version"]
+description = "A suite of utilities designed to streamline TiDB documentation workflows."
+authors = [
+    { name = "Aolin", email = "aolinz@outlook.com" },
+]
+dependencies = [
+    "marimo>=0.9.20",
+    "platformdirs>=4.3.6",
+    "python-docx>=1.1.2",
+    "pyyaml>=6.0.2",
+    "hypercorn>=0.17.3",
+    "rich>=13.9.4"
+]
+scripts = { tidocs = "tidocs.cli:main" }
+requires-python = ">=3.9"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm]
+distribution = true
+
+[tool.pdm.build]
+includes = ["src/tidocs/"]
+
+[tool.pdm.version]
+source = "scm"
