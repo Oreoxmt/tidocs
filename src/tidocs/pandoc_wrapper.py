@@ -140,6 +140,7 @@ class Pandoc:
                         if basename == self.binary_name:
                             file.extract(info, tmp_dir_path)
                             extracted = tmp_dir_path / info.filename
+                            extracted.chmod(info.external_attr >> 16)
                             break
             elif archive_name.endswith(".tar.gz"):
                 with tarfile.open(archive_path, "r") as file:
@@ -163,7 +164,7 @@ class Pandoc:
         # Save version information after successful installation
         self.save_version_info()
         if not self.is_version_matched():
-            raise AssertionError("Pandoc installation failed.")
+            raise AssertionError("Pandoc version does not match requirements.")
 
         return self.pandoc_binary
 

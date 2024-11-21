@@ -72,6 +72,10 @@ The `tidocs merge` command provides a web interface for combining multiple relea
 
 ## Changelog
 
+### v1.0.1
+
+- Fix the issue that Pandoc becomes non-executable after installation on macOS because `Zipfile.extract()` doesn't maintain file permissions.
+
 ### v1.0.0
 
 - Support merging multiple TiDB release notes Markdown files with HTML tables into one well-formatted Word document.

@@ -7,6 +7,8 @@ import rich
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 
+from tidocs.pandoc_wrapper import Pandoc
+
 APPS = {
     "merge": "Merge Release Notes"
 }
@@ -36,7 +38,7 @@ def launch_marimo_app(appname: str, host: str, port: int) -> None:
 
 
 @click.command(no_args_is_help=True)
-@click.version_option(version='1.0.0')
+@click.version_option(version='1.0.1')
 @click.argument(
     "appname",
     type=click.Choice(list(APPS.keys())),
@@ -79,6 +81,9 @@ def cli(appname: str, host: str, port: int) -> None:
 
             $ tidocs merge --host 0.0.0.0 --port 9000
     """
+    if appname == "merge":
+        pandoc = Pandoc()
+        pandoc.install()
     launch_marimo_app(appname, host, port)
 
 
