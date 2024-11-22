@@ -72,6 +72,10 @@ The `tidocs merge` command provides a web interface for combining multiple relea
 
 ## Changelog
 
+### v1.0.4
+
+- Enhance the rendering of abstracts containing multiple paragraphs.
+
 ### v1.0.3
 
 - Remove "Abstract" heading from the generated Word document.

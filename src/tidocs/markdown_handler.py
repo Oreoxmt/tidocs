@@ -54,7 +54,7 @@ def generate_pandoc_metadata(
     # Handle toc_title
     if toc_title:
         metadata["toc-title"] = toc_title
-    yaml_str = yaml.dump(metadata, sort_keys=False, allow_unicode=True, width=float("inf"), default_style=None)
+    yaml_str = yaml.dump(metadata, sort_keys=False, allow_unicode=True, width=float("inf"), default_style="|")
     result = "---\n" + yaml_str + "---"
     return result
 

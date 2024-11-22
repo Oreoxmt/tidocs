@@ -38,7 +38,7 @@ def launch_marimo_app(appname: str, host: str, port: int) -> None:
 
 
 @click.command(no_args_is_help=True)
-@click.version_option(version='1.0.3')
+@click.version_option(version='1.0.4')
 @click.argument(
     "appname",
     type=click.Choice(list(APPS.keys())),
