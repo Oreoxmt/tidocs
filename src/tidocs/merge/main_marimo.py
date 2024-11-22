@@ -221,6 +221,7 @@ def __(Pandoc, get_reference_doc, md_contents, mo, table_contents):
             "--from=markdown",
             "--toc=true",
             "--toc-depth=3",
+            '--metadata=abstract-title:',
         ],
         md_contents.encode("utf-8"),
     )

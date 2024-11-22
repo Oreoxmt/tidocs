@@ -72,6 +72,10 @@ The `tidocs merge` command provides a web interface for combining multiple relea
 
 ## Changelog
 
+### v1.0.3
+
+- Remove "Abstract" heading from the generated Word document.
+
 ### v1.0.2
 
 - Fix the issue that Pandoc fails to write docx output to terminal on Windows.
