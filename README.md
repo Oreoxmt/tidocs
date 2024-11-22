@@ -72,6 +72,10 @@ The `tidocs merge` command provides a web interface for combining multiple relea
 
 ## Changelog
 
+### v1.0.2
+
+- Fix the issue that Pandoc fails to write docx output to terminal on Windows.
+
 ### v1.0.1
 
 - Fix the issue that Pandoc becomes non-executable after installation on macOS because `Zipfile.extract()` doesn't maintain file permissions.
