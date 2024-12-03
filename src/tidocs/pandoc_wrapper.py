@@ -199,7 +199,7 @@ class Pandoc:
             >>> pandoc = Pandoc()
             >>> _ = pandoc.install(testing=True)
             >>> output, err = pandoc.run(["--version"])
-            >>> output.decode("utf-8").startswith(f"pandoc {pandoc.VERSION}")
+            >>> output.decode("utf-8").startswith(f"{pandoc.binary_name} {pandoc.VERSION}")
             True
             >>> err.decode("utf-8") == ""
             True
