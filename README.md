@@ -57,7 +57,7 @@ When you convert this Markdown file to a Word or PDF document using Pandoc, you 
 
 | Pandoc Output | TiDocs Output |
 | --- | --- |
-| ![Pandoc Output](/images/example/pandoc_example_output.png) | ![TiDocs Output](/images/example/tidocs_example_output.png) |
+| ![Pandoc Output](https://raw.githubusercontent.com/Oreoxmt/tidocs/refs/heads/main/images/example/pandoc_example_output.png) | ![TiDocs Output](https://raw.githubusercontent.com/Oreoxmt/tidocs/refs/heads/main/images/example/tidocs_example_output.png) |
 
 Pandoc fails to maintain the table structure and formatting, resulting in a poorly formatted document. In contrast, TiDocs preserves the complex table structure and formatting, ensuring that your document looks good.
 
@@ -102,13 +102,13 @@ Use the `tidocs merge` command to access a web interface for combining multiple 
 
     To merge release notes from v1.0.0 to v10.0.0, upload all files from `release-1.0.0.md` to `release-10.0.0.md`.
 
-    ![TiDocs: Upload release notes](/images/usage/tidocs_merge_upload.png)
+    ![TiDocs: Upload release notes](https://raw.githubusercontent.com/Oreoxmt/tidocs/refs/heads/main/images/usage/tidocs_merge_upload.png)
 
 3. Configure document information:
 
     Fill in the fields to customize the cover page of the generated Word document.
 
-    ![TiDocs: Configure document information](/images/usage/tidocs_merge_config.png)
+    ![TiDocs: Configure document information](https://raw.githubusercontent.com/Oreoxmt/tidocs/refs/heads/main/images/usage/tidocs_merge_config.png)
 
 4. Generate document:
 
@@ -118,7 +118,7 @@ Use the `tidocs merge` command to access a web interface for combining multiple 
     - Complete documentation links
     - Generated Table of Contents
 
-    ![TiDocs: Generate document](/images/usage/tidocs_merge_download.png)
+    ![TiDocs: Generate document](https://raw.githubusercontent.com/Oreoxmt/tidocs/refs/heads/main/images/usage/tidocs_merge_download.png)
 
 5. Post-process document:
 
