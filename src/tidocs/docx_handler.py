@@ -4,9 +4,10 @@ from docx import Document
 
 
 def merge_word_docs_with_tables(
-        main_doc_data: bytes,
-        table_doc_data: bytes,
-        marker_text: str = "TIDOCS_REPLACE_TABLE") -> bytes:
+    main_doc_data: bytes,
+    table_doc_data: bytes,
+    marker_text: str = "TIDOCS_REPLACE_TABLE",
+) -> bytes:
     """
     Merges tables from one Word document into another at specified marker locations.
 

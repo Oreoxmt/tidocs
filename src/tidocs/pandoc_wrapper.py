@@ -8,6 +8,7 @@ import tempfile
 import urllib.request
 import zipfile
 from pathlib import Path
+from typing import Optional
 
 import platformdirs
 
@@ -26,12 +27,18 @@ class Pandoc:
     VERSION = "3.5"
 
     DOWNLOAD_URLS_BY_PLATFORM = {
-        ("Darwin", "arm64"):
-            f"https://github.com/jgm/pandoc/releases/download/{VERSION}/pandoc-{VERSION}-arm64-macOS.zip",
-        ("Linux", "x86_64"):
-            f"https://github.com/jgm/pandoc/releases/download/{VERSION}/pandoc-{VERSION}-linux-amd64.tar.gz",
-        ("Windows", "AMD64"):
-            f"https://github.com/jgm/pandoc/releases/download/{VERSION}/pandoc-{VERSION}-windows-x86_64.zip"
+        (
+            "Darwin",
+            "arm64",
+        ): f"https://github.com/jgm/pandoc/releases/download/{VERSION}/pandoc-{VERSION}-arm64-macOS.zip",
+        (
+            "Linux",
+            "x86_64",
+        ): f"https://github.com/jgm/pandoc/releases/download/{VERSION}/pandoc-{VERSION}-linux-amd64.tar.gz",
+        (
+            "Windows",
+            "AMD64",
+        ): f"https://github.com/jgm/pandoc/releases/download/{VERSION}/pandoc-{VERSION}-windows-x86_64.zip",
     }
 
     def __init__(self) -> None:
@@ -82,13 +89,16 @@ class Pandoc:
         Creates version file directory if it doesn't exist and writes current VERSION to the file.
         """
         self.version_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.version_file, 'w') as f:
+        with open(self.version_file, "w") as f:
             f.write(self.VERSION)
 
-    def install(self) -> Path:
+    def install(self, testing: bool = False) -> Path:
         """Download and install Pandoc if necessary.
 
         Downloads and extracts the appropriate Pandoc binary for the current platform if it's not already installed or if the version doesn't match requirements.
+
+        Args:
+            testing (bool): If True, suppress progress output for testing
 
         Returns:
             Path: Path to the installed Pandoc binary.
@@ -102,9 +112,10 @@ class Pandoc:
 
         def _progress_callback(count: int, block_size: int, total_size: int) -> None:
             """Display download progress as percentage."""
-            percent = int(count * block_size * 100 / total_size)
-            sys.stdout.write(f"\rDownloading Pandoc: {percent}%")
-            sys.stdout.flush()
+            if not testing:
+                percent = int(count * block_size * 100 / total_size)
+                sys.stdout.write(f"\rDownloading Pandoc: {percent}%")
+                sys.stdout.flush()
 
         # Clean existing binary if present
         if self.pandoc_binary.exists():
@@ -126,9 +137,11 @@ class Pandoc:
             _, _, archive_name = url.rpartition("/")
             archive_path = tmp_dir_path / archive_name
 
-            print(f"Downloading from {url} to {archive_path}")
+            if not testing:
+                print(f"Downloading from {url} to {archive_path}")
             urllib.request.urlretrieve(url, archive_path, _progress_callback)
-            print()  # New line after progress
+            if not testing:
+                print()  # New line after progress
 
             # Extract archive
             extracted = None
@@ -153,7 +166,9 @@ class Pandoc:
                             extracted = tmp_dir_path / info.name
                             break
             if extracted is None:
-                raise FileNotFoundError(f"pandoc binary {self.binary_name} not found in downloaded archive")
+                raise FileNotFoundError(
+                    f"pandoc binary {self.binary_name} not found in downloaded archive"
+                )
 
             self.pandoc_binary.parent.mkdir(parents=True, exist_ok=True)
             shutil.move(extracted, self.pandoc_binary)
@@ -168,7 +183,7 @@ class Pandoc:
 
         return self.pandoc_binary
 
-    def run(self, args: list, stdin: bytes | None = None) -> (bytes, bytes):
+    def run(self, args: list, stdin: Optional[bytes] = None) -> (bytes, bytes):
         """Execute Pandoc with specified arguments.
 
         Installs or updates Pandoc if necessary before running the command.
@@ -182,8 +197,9 @@ class Pandoc:
 
         Example:
             >>> pandoc = Pandoc()
+            >>> _ = pandoc.install(testing=True)
             >>> output, err = pandoc.run(["--version"])
-            >>> output.decode("utf-8").startswith(f"pandoc {pandoc.VERSION}")
+            >>> output.decode("utf-8").startswith(f"{pandoc.binary_name} {pandoc.VERSION}")
             True
             >>> err.decode("utf-8") == ""
             True

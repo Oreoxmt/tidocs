@@ -1,0 +1,28 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-docstring-first
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.27.3
+    hooks:
+      - id: typos
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.0
+    hooks:
+      # Run the linter.
+      - id: ruff
+        args: [ --fix ]
+        exclude: |
+          (?x)^(
+              .*_marimo\.py|
+          )$
+      # Run the formatter.
+      - id: ruff-format
+        exclude: |
+          (?x)^(
+              .*_marimo\.py|
+          )$

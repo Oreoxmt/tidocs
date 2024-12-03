@@ -1,15 +1,16 @@
 import re
 from datetime import date, datetime
-
+from typing import Optional, Union
 import yaml
 
 
 def generate_pandoc_metadata(
-        title: str | None = None,
-        author: str | list | None = None,
-        publication_date: str | date | datetime | None = None,
-        abstract: str | None = None,
-        toc_title: str | None = None) -> str:
+    title: Optional[str] = None,
+    author: Union[str, list[str], None] = None,
+    publication_date: Union[str, date, datetime, None] = None,
+    abstract: Optional[str] = None,
+    toc_title: Optional[str] = None,
+) -> str:
     """
     Generate a YAML metadata block for Pandoc documents.
 
@@ -22,6 +23,19 @@ def generate_pandoc_metadata(
 
     Returns:
         str: Formatted YAML metadata block
+
+    Examples:
+        >>> generate_pandoc_metadata()
+        '\\n---\\n\\n---\\n'
+        >>> generate_pandoc_metadata(title="Sample Document")
+        '\\n---\\n"title": |-\\n  Sample Document\\n\\n---\\n'
+        >>> generate_pandoc_metadata(author="John Doe")
+        '\\n---\\n"author": |-\\n  John Doe\\n\\n---\\n'
+        >>> from datetime import date
+        >>> generate_pandoc_metadata(publication_date=date(2024, 1, 1))
+        '\\n---\\n"date": |-\\n  20240101\\n\\n---\\n'
+        >>> generate_pandoc_metadata(abstract="This is a sample abstract\\n\\nA new line.")
+        '\\n---\\n"abstract": |-\\n  This is a sample abstract\\n\\n  A new line.\\n\\n---\\n'
     """
     metadata = {}
 
@@ -54,8 +68,18 @@ def generate_pandoc_metadata(
     # Handle toc_title
     if toc_title:
         metadata["toc-title"] = toc_title
-    yaml_str = yaml.dump(metadata, sort_keys=False, allow_unicode=True, width=float("inf"), default_style="|")
-    result = "---\n" + yaml_str + "---"
+
+    if not metadata:
+        yaml_str = ""
+    else:
+        yaml_str = yaml.dump(
+            metadata,
+            sort_keys=False,
+            allow_unicode=True,
+            width=float("inf"),
+            default_style="|",
+        )
+    result = "\n---\n" + yaml_str + "\n---\n"
     return result
 
 
@@ -78,7 +102,7 @@ def remove_front_matter(content: bytes) -> bytes:
     if end_index == -1:
         return content
 
-    return content[:start_index] + content[end_index + len(front_matter):]
+    return content[:start_index] + content[end_index + len(front_matter) :]
 
 
 def process_internal_links(content: str, base_url: str) -> str:

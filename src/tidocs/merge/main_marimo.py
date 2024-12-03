@@ -34,7 +34,7 @@ def __(is_valid_filename, md_files, mo):
         mo.stop(
             not is_valid_filename(md_files.value[i].name),
             mo.md(
-                f"#### {mo.icon("ic:round-error-outline", color="darkorange", inline=True)} Invalid format.\n\nPlease upload release notes in `release-x.y.z.md` format."
+                f'#### {mo.icon("ic:round-error-outline", color="darkorange", inline=True)} Invalid format.\n\nPlease upload release notes in `release-x.y.z.md` format.'
             )
             .center()
             .callout(kind="danger"),
@@ -182,8 +182,8 @@ def __(
         return re.match(pattern, filename) is not None
 
 
-    # Extract the version number from the filename
     def extract_version(filename):
+        """Extract the version number from the filename"""
         return tuple(map(int, filename.name.split("-")[1].split(".")[:-1]))
 
 
@@ -221,7 +221,7 @@ def __(Pandoc, get_reference_doc, md_contents, mo, table_contents):
             "--from=markdown",
             "--toc=true",
             "--toc-depth=3",
-            '--metadata=abstract-title:',
+            "--metadata=abstract-title:",
         ],
         md_contents.encode("utf-8"),
     )
@@ -229,12 +229,11 @@ def __(Pandoc, get_reference_doc, md_contents, mo, table_contents):
     mo.stop(
         md_doc_err.decode("utf-8") != "",
         mo.md(
-            f"#### {mo.icon("ic:round-error-outline", color="darkorange", inline=True)} Failed to convert to Word.\n\n{md_doc_err.decode("utf-8")}"
+            f'#### {mo.icon("ic:round-error-outline", color="darkorange", inline=True)} Failed to convert to Word.\n\n{md_doc_err.decode("utf-8")}'
         )
         .center()
         .callout(kind="danger"),
     )
-
 
     table_doc_data, table_doc_err = Pandoc().run(
         [
@@ -249,7 +248,7 @@ def __(Pandoc, get_reference_doc, md_contents, mo, table_contents):
     mo.stop(
         table_doc_err.decode("utf-8") != "",
         mo.md(
-            f"####{mo.icon("ic:round-error-outline", color="darkorange", inline=True)} Failed to convert to Word.\n\n{table_doc_err.decode("utf-8")}"
+            f'####{mo.icon("ic:round-error-outline", color="darkorange", inline=True)} Failed to convert to Word.\n\n{table_doc_err.decode("utf-8")}'
         )
         .center()
         .callout(kind="danger"),

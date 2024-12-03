@@ -9,9 +9,7 @@ from hypercorn.config import Config
 
 from tidocs.pandoc_wrapper import Pandoc
 
-APPS = {
-    "merge": "Merge Release Notes"
-}
+APPS = {"merge": "Merge Release Notes"}
 
 
 def launch_marimo_app(appname: str, host: str, port: int) -> None:
@@ -23,7 +21,7 @@ def launch_marimo_app(appname: str, host: str, port: int) -> None:
         port: Port number to listen on
     """
     base_path = Path(__file__).parent
-    script_path = base_path / appname / 'main_marimo.py'
+    script_path = base_path / appname / "main_marimo.py"
 
     app = marimo.create_asgi_app().with_app(path="", root=str(script_path)).build()
     config = Config()
@@ -34,22 +32,20 @@ def launch_marimo_app(appname: str, host: str, port: int) -> None:
     rich.print(f":link: URL: http://{host}:{port}")
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(serve(app, config, shutdown_trigger=lambda: asyncio.Future()))
+    loop.run_until_complete(
+        serve(app, config, shutdown_trigger=lambda: asyncio.Future())
+    )
 
 
 @click.command(no_args_is_help=True)
-@click.version_option(version='1.0.4')
-@click.argument(
-    "appname",
-    type=click.Choice(list(APPS.keys())),
-    required=True
-)
+@click.version_option(version="1.0.5")
+@click.argument("appname", type=click.Choice(list(APPS.keys())), required=True)
 @click.option(
     "--host",
     default="127.0.0.1",
     metavar="HOST",
     help="Host address to bind to.",
-    show_default=True
+    show_default=True,
 )
 @click.option(
     "--port",
@@ -57,7 +53,7 @@ def launch_marimo_app(appname: str, host: str, port: int) -> None:
     metavar="PORT",
     type=int,
     help="Port number to listen on.",
-    show_default=True
+    show_default=True,
 )
 def cli(appname: str, host: str, port: int) -> None:
     """TiDocs: Tools for TiDB Documentation
@@ -96,5 +92,5 @@ def main():
         cli.main(["--help"], standalone_mode=False)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

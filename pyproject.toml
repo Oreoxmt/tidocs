@@ -32,3 +32,8 @@ includes = ["src/tidocs/"]
 
 [tool.pdm.version]
 source = "scm"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+]
