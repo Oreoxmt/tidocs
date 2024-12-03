@@ -23,6 +23,19 @@ def generate_pandoc_metadata(
 
     Returns:
         str: Formatted YAML metadata block
+
+    Examples:
+        >>> generate_pandoc_metadata()
+        '\\n---\\n\\n---\\n'
+        >>> generate_pandoc_metadata(title="Sample Document")
+        '\\n---\\n"title": |-\\n  Sample Document\\n\\n---\\n'
+        >>> generate_pandoc_metadata(author="John Doe")
+        '\\n---\\n"author": |-\\n  John Doe\\n\\n---\\n'
+        >>> from datetime import date
+        >>> generate_pandoc_metadata(publication_date=date(2024, 1, 1))
+        '\\n---\\n"date": |-\\n  20240101\\n\\n---\\n'
+        >>> generate_pandoc_metadata(abstract="This is a sample abstract\\n\\nA new line.")
+        '\\n---\\n"abstract": |-\\n  This is a sample abstract\\n\\n  A new line.\\n\\n---\\n'
     """
     metadata = {}
 
