@@ -22,4 +22,4 @@ jobs:
         run: pdm install
       - name: Test with pytest
         run: |
-          pdm run pytest --doctest-modules
+          pdm run pytest --doctest-modules --doctest-report udiff --doctest-continue-on-failure --tb=short
