@@ -92,10 +92,13 @@ class Pandoc:
         with open(self.version_file, "w") as f:
             f.write(self.VERSION)
 
-    def install(self) -> Path:
+    def install(self, testing: bool = False) -> Path:
         """Download and install Pandoc if necessary.
 
         Downloads and extracts the appropriate Pandoc binary for the current platform if it's not already installed or if the version doesn't match requirements.
+
+        Args:
+            testing (bool): If True, suppress progress output for testing
 
         Returns:
             Path: Path to the installed Pandoc binary.
@@ -109,9 +112,10 @@ class Pandoc:
 
         def _progress_callback(count: int, block_size: int, total_size: int) -> None:
             """Display download progress as percentage."""
-            percent = int(count * block_size * 100 / total_size)
-            sys.stdout.write(f"\rDownloading Pandoc: {percent}%")
-            sys.stdout.flush()
+            if not testing:
+                percent = int(count * block_size * 100 / total_size)
+                sys.stdout.write(f"\rDownloading Pandoc: {percent}%")
+                sys.stdout.flush()
 
         # Clean existing binary if present
         if self.pandoc_binary.exists():
@@ -133,9 +137,11 @@ class Pandoc:
             _, _, archive_name = url.rpartition("/")
             archive_path = tmp_dir_path / archive_name
 
-            print(f"Downloading from {url} to {archive_path}")
+            if not testing:
+                print(f"Downloading from {url} to {archive_path}")
             urllib.request.urlretrieve(url, archive_path, _progress_callback)
-            print()  # New line after progress
+            if not testing:
+                print()  # New line after progress
 
             # Extract archive
             extracted = None
@@ -191,6 +197,7 @@ class Pandoc:
 
         Example:
             >>> pandoc = Pandoc()
+            >>> _ = pandoc.install(testing=True)
             >>> output, err = pandoc.run(["--version"])
             >>> output.decode("utf-8").startswith(f"pandoc {pandoc.VERSION}")
             True
