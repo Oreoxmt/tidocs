@@ -1,6 +1,13 @@
 name: Test
 
-on: [push]
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "**.py"
+    tags-ignore:
+      - "**"
 
 jobs:
   test:
