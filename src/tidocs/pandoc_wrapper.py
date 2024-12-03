@@ -8,6 +8,7 @@ import tempfile
 import urllib.request
 import zipfile
 from pathlib import Path
+from typing import Optional
 
 import platformdirs
 
@@ -168,7 +169,7 @@ class Pandoc:
 
         return self.pandoc_binary
 
-    def run(self, args: list, stdin: bytes | None = None) -> (bytes, bytes):
+    def run(self, args: list, stdin: Optional[bytes] = None) -> (bytes, bytes):
         """Execute Pandoc with specified arguments.
 
         Installs or updates Pandoc if necessary before running the command.

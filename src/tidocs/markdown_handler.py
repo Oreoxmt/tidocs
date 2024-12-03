@@ -1,15 +1,16 @@
 import re
 from datetime import date, datetime
-
+from typing import Optional, Union
 import yaml
 
 
 def generate_pandoc_metadata(
-        title: str | None = None,
-        author: str | list | None = None,
-        publication_date: str | date | datetime | None = None,
-        abstract: str | None = None,
-        toc_title: str | None = None) -> str:
+    title: Optional[str] = None,
+    author: Union[str, list[str], None] = None,
+    publication_date: Union[str, date, datetime, None] = None,
+    abstract: Optional[str] = None,
+    toc_title: Optional[str] = None,
+) -> str:
     """
     Generate a YAML metadata block for Pandoc documents.
 
