@@ -27,12 +27,18 @@ class Pandoc:
     VERSION = "3.5"
 
     DOWNLOAD_URLS_BY_PLATFORM = {
-        ("Darwin", "arm64"):
-            f"https://github.com/jgm/pandoc/releases/download/{VERSION}/pandoc-{VERSION}-arm64-macOS.zip",
-        ("Linux", "x86_64"):
-            f"https://github.com/jgm/pandoc/releases/download/{VERSION}/pandoc-{VERSION}-linux-amd64.tar.gz",
-        ("Windows", "AMD64"):
-            f"https://github.com/jgm/pandoc/releases/download/{VERSION}/pandoc-{VERSION}-windows-x86_64.zip"
+        (
+            "Darwin",
+            "arm64",
+        ): f"https://github.com/jgm/pandoc/releases/download/{VERSION}/pandoc-{VERSION}-arm64-macOS.zip",
+        (
+            "Linux",
+            "x86_64",
+        ): f"https://github.com/jgm/pandoc/releases/download/{VERSION}/pandoc-{VERSION}-linux-amd64.tar.gz",
+        (
+            "Windows",
+            "AMD64",
+        ): f"https://github.com/jgm/pandoc/releases/download/{VERSION}/pandoc-{VERSION}-windows-x86_64.zip",
     }
 
     def __init__(self) -> None:
@@ -83,7 +89,7 @@ class Pandoc:
         Creates version file directory if it doesn't exist and writes current VERSION to the file.
         """
         self.version_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.version_file, 'w') as f:
+        with open(self.version_file, "w") as f:
             f.write(self.VERSION)
 
     def install(self) -> Path:
@@ -154,7 +160,9 @@ class Pandoc:
                             extracted = tmp_dir_path / info.name
                             break
             if extracted is None:
-                raise FileNotFoundError(f"pandoc binary {self.binary_name} not found in downloaded archive")
+                raise FileNotFoundError(
+                    f"pandoc binary {self.binary_name} not found in downloaded archive"
+                )
 
             self.pandoc_binary.parent.mkdir(parents=True, exist_ok=True)
             shutil.move(extracted, self.pandoc_binary)

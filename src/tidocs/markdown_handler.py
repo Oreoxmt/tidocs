@@ -89,7 +89,7 @@ def remove_front_matter(content: bytes) -> bytes:
     if end_index == -1:
         return content
 
-    return content[:start_index] + content[end_index + len(front_matter):]
+    return content[:start_index] + content[end_index + len(front_matter) :]
 
 
 def process_internal_links(content: str, base_url: str) -> str:
