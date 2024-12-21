@@ -157,6 +157,10 @@ Use the `tidocs merge` command to access a web interface for combining multiple 
 
 ## Changelog
 
+### [1.0.6] - 2024-12-21
+
+- Fix the issue that hyperlinks become broken after merging Word documents due to incorrect relationship reference handling. ([#2](https://github.com/Oreoxmt/tidocs/issues/2))
+
 ### [1.0.5] - 2024-12-03
 
 - Fix compatibility issues with Python 3.9.
