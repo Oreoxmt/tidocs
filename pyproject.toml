@@ -24,6 +24,11 @@ license = { text = "Apache-2.0" }
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+]
+
 [tool.pdm]
 distribution = true
 
@@ -32,8 +37,3 @@ includes = ["src/tidocs/"]
 
 [tool.pdm.version]
 source = "scm"
-
-[dependency-groups]
-dev = [
-    "pytest>=8.3.4",
-]

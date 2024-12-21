@@ -321,7 +321,7 @@ files = [
 
 [[package]]
 name = "marimo"
-version = "0.9.20"
+version = "0.10.6"
 requires_python = ">=3.9"
 summary = "A library for making reactive notebooks and apps"
 groups = ["default"]
@@ -335,18 +335,18 @@ dependencies = [
     "packaging",
     "psutil>=5.0",
     "pygments<3,>=2.13",
-    "pymdown-extensions<11,>=9.0",
+    "pymdown-extensions<11,>=10",
     "pyyaml>=6.0",
     "ruff",
     "starlette!=0.36.0,>=0.26.1",
     "tomlkit>=0.12.0",
     "typing-extensions>=4.4.0; python_version < \"3.11\"",
     "uvicorn>=0.22.0",
-    "websockets<13.0.0,>=10.0.0",
+    "websockets>=10.0.0",
 ]
 files = [
-    {file = "marimo-0.9.20-py3-none-any.whl", hash = "sha256:46befa7b64e03faa6a30b0e2960c6fc1fb425c5a0cf1c1cb0698f01c5c748ca2"},
-    {file = "marimo-0.9.20.tar.gz", hash = "sha256:c53c692ab46664a2d6d0dcb5a10e8272dd00d69e32f9e683ade0c0b0e9f3cdec"},
+    {file = "marimo-0.10.6-py3-none-any.whl", hash = "sha256:278c8cbf37b323ad913b20af5abc17da089d88d4d6bdb484d78fcc2bab21448e"},
+    {file = "marimo-0.10.6.tar.gz", hash = "sha256:b3bdc78cf07801d1197b0d3957e845526f82db30f48e2dc91324923579204d66"},
 ]
 
 [[package]]

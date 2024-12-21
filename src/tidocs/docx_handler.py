@@ -1,6 +1,7 @@
 import io
-
 from docx import Document
+from docx.oxml import parse_xml
+from docx.oxml.shared import qn
 
 
 def merge_word_docs_with_tables(
@@ -9,7 +10,7 @@ def merge_word_docs_with_tables(
     marker_text: str = "TIDOCS_REPLACE_TABLE",
 ) -> bytes:
     """
-    Merges tables from one Word document into another at specified marker locations.
+    Merges tables from one Word document into another at specified marker locations, preserving hyperlinks and other document relationships.
 
     Args:
         main_doc_data (bytes): The main document binary data
@@ -23,20 +24,43 @@ def merge_word_docs_with_tables(
     main_doc = Document(io.BytesIO(main_doc_data))
     table_doc = Document(io.BytesIO(table_doc_data))
 
+    # Create a mapping of relationship IDs between documents
+    rel_map = {}
+
+    # Copy hyperlink relationships from table_doc to main_doc
+    for rel_id, rel in table_doc.part.rels.items():
+        if (
+            rel.reltype
+            == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"
+        ):
+            new_rel_id = main_doc.part.relate_to(
+                rel._target, rel.reltype, rel.is_external
+            )
+            rel_map[rel_id] = new_rel_id
+
     # Find all tables in the table document
     tables_to_insert = {}
     current_heading = None
 
     # Associate tables with their preceding headings
     for element in table_doc.element.body:
-        if element.tag.endswith("p"):  # It's a paragraph
+        if element.tag.endswith("p"):
             paragraph_text = element.text.strip()
             if paragraph_text:
-                # print(paragraph_text)
                 current_heading = paragraph_text
-        elif element.tag.endswith("tbl"):  # It's a table
+        elif element.tag.endswith("tbl"):
             if current_heading:
-                tables_to_insert[current_heading] = element
+                # Deep copy the table element
+                table_copy = parse_xml(element.xml)
+
+                # Update relationship IDs in the copied table
+                # Find all hyperlinks using the proper namespace approach
+                for hyperlink in table_copy.xpath(".//w:hyperlink"):
+                    old_rid = hyperlink.get(qn("r:id"))
+                    if old_rid in rel_map:
+                        hyperlink.set(qn("r:id"), rel_map[old_rid])
+
+                tables_to_insert[current_heading] = table_copy
 
     # Process the main document
     for paragraph in main_doc.paragraphs:
@@ -53,17 +77,16 @@ def merge_word_docs_with_tables(
     return output.getvalue()
 
 
-# Usage with your existing code
 def merge_documents(doc_data: bytes, table_data: bytes) -> bytes:
     """
-    Wrapper function to merge your documents using the existing download objects
+    Merge two Word documents, inserting table_data into doc_data.
 
     Args:
-        doc_data (bytes): Main document data from first Pandoc conversion
-        table_data (bytes): Table document data from second Pandoc conversion
+        doc_data: Main document binary data
+        table_data: Table document binary data
 
     Returns:
-        bytes: Merged document data
+        Merged document binary data
     """
     try:
         merged_data = merge_word_docs_with_tables(doc_data, table_data)
