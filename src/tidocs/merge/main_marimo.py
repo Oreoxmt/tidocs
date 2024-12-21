@@ -1,17 +1,17 @@
 import marimo
 
-__generated_with = "0.9.20"
+__generated_with = "0.10.6"
 app = marimo.App(app_title="TiDocs - Merge Release Notes")
 
 
 @app.cell
-def __():
+def _():
     import marimo as mo
     return (mo,)
 
 
 @app.cell
-def __(mo):
+def _(mo):
     mo.md(
         """
         # TiDocs: Merge Release Notes
@@ -23,18 +23,18 @@ def __(mo):
 
 
 @app.cell
-def __(upload_area):
+def _(upload_area):
     upload_area
     return
 
 
 @app.cell
-def __(is_valid_filename, md_files, mo):
+def _(is_valid_filename, md_files, mo):
     for i in range(len(md_files.value)):
         mo.stop(
             not is_valid_filename(md_files.value[i].name),
             mo.md(
-                f'#### {mo.icon("ic:round-error-outline", color="darkorange", inline=True)} Invalid format.\n\nPlease upload release notes in `release-x.y.z.md` format.'
+                f"#### {mo.icon('ic:round-error-outline', color='darkorange', inline=True)} Invalid format.\n\nPlease upload release notes in `release-x.y.z.md` format."
             )
             .center()
             .callout(kind="danger"),
@@ -43,13 +43,13 @@ def __(is_valid_filename, md_files, mo):
 
 
 @app.cell
-def __(config_area):
+def _(config_area):
     config_area
     return
 
 
 @app.cell
-def __(merged_doc, mo):
+def _(merged_doc, mo):
     download_area = mo.vstack(
         [
             mo.md(f"""## {mo.icon('fluent:document-one-page-multiple-sparkle-24-regular')}  3. Generate Document
@@ -67,7 +67,7 @@ def __(merged_doc, mo):
 
 
 @app.cell
-def __(
+def _(
     abstract_input,
     authors_input,
     date_input,
@@ -86,7 +86,7 @@ def __(
 
 
 @app.cell
-def __(mo):
+def _(mo):
     md_files = mo.ui.file(
         filetypes=[".md"],
         multiple=True,
@@ -106,7 +106,7 @@ def __(mo):
 
 
 @app.cell
-def __(mo):
+def _(mo):
     config_area_title = mo.md(
         f"""## {mo.icon('lucide:edit')} 2. Configure Document Information
 
@@ -165,7 +165,7 @@ def __(mo):
 
 
 @app.cell
-def __(
+def _(
     base_url_input,
     extract_and_mark_html_tables,
     md_files,
@@ -208,7 +208,7 @@ def __(
 
 
 @app.cell
-def __(Pandoc, get_reference_doc, md_contents, mo, table_contents):
+def _(Pandoc, get_reference_doc, md_contents, mo, table_contents):
     reference_doc = get_reference_doc()
 
     pandoc = Pandoc()
@@ -229,7 +229,7 @@ def __(Pandoc, get_reference_doc, md_contents, mo, table_contents):
     mo.stop(
         md_doc_err.decode("utf-8") != "",
         mo.md(
-            f'#### {mo.icon("ic:round-error-outline", color="darkorange", inline=True)} Failed to convert to Word.\n\n{md_doc_err.decode("utf-8")}'
+            f"#### {mo.icon('ic:round-error-outline', color='darkorange', inline=True)} Failed to convert to Word.\n\n{md_doc_err.decode('utf-8')}"
         )
         .center()
         .callout(kind="danger"),
@@ -248,7 +248,7 @@ def __(Pandoc, get_reference_doc, md_contents, mo, table_contents):
     mo.stop(
         table_doc_err.decode("utf-8") != "",
         mo.md(
-            f'####{mo.icon("ic:round-error-outline", color="darkorange", inline=True)} Failed to convert to Word.\n\n{table_doc_err.decode("utf-8")}'
+            f"####{mo.icon('ic:round-error-outline', color='darkorange', inline=True)} Failed to convert to Word.\n\n{table_doc_err.decode('utf-8')}"
         )
         .center()
         .callout(kind="danger"),
@@ -264,7 +264,7 @@ def __(Pandoc, get_reference_doc, md_contents, mo, table_contents):
 
 
 @app.cell
-def __(md_doc_data, merge_documents, mo, table_doc_data):
+def _(md_doc_data, merge_documents, mo, table_doc_data):
     merged_doc_data = merge_documents(md_doc_data, table_doc_data)
 
     merged_doc = mo.download(
@@ -276,7 +276,7 @@ def __(md_doc_data, merge_documents, mo, table_doc_data):
 
 
 @app.cell
-def __(mo):
+def _(mo):
     mo.md(f"""## {mo.icon('icon-park-outline:format')} 4. Post-process Document
 
     After generating the Word document, follow these steps to finalize it:
@@ -298,7 +298,7 @@ def __(mo):
 
 
 @app.cell
-def __():
+def _():
     from tidocs.markdown_handler import (
         generate_pandoc_metadata,
         remove_front_matter,
