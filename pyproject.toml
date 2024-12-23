@@ -37,3 +37,4 @@ includes = ["src/tidocs/"]
 
 [tool.pdm.version]
 source = "scm"
+write_to = "tidocs/VERSION"
