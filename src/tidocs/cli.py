@@ -8,6 +8,7 @@ from hypercorn.asyncio import serve
 from hypercorn.config import Config
 
 from tidocs.pandoc_wrapper import Pandoc
+from tidocs.__version__ import __version__
 
 APPS = {"merge": "Merge Release Notes"}
 
@@ -38,7 +39,7 @@ def launch_marimo_app(appname: str, host: str, port: int) -> None:
 
 
 @click.command(no_args_is_help=True)
-@click.version_option(version="1.0.6")
+@click.version_option(version=__version__)
 @click.argument("appname", type=click.Choice(list(APPS.keys())), required=True)
 @click.option(
     "--host",
