@@ -130,7 +130,7 @@ def extract_and_mark_html_tables(content: str) -> (str, str):
     Examples:
         >>> test_content = "Table1\\n<table><thead>Test1</thead></table>\\n\\nTable2\\n<table><thead>Test2</thead></table>\\n\\n"
         >>> modified, html_tables = extract_and_mark_html_tables(test_content)
-        >>> print(html_tables) # doctest: +NORMALIZE_WHITESPACE
+        >>> print(html_tables)
         TIDOCS_REPLACE_TABLE_0
         <BLANKLINE>
         <table><thead>Test1</thead></table>
@@ -140,27 +140,63 @@ def extract_and_mark_html_tables(content: str) -> (str, str):
         <table><thead>Test2</thead></table>
         <BLANKLINE>
         <BLANKLINE>
-        >>> print(modified) # doctest: +NORMALIZE_WHITESPACE
+        >>> print(modified)
         Table1
         TIDOCS_REPLACE_TABLE_0
         <BLANKLINE>
         Table2
         TIDOCS_REPLACE_TABLE_1
+        <BLANKLINE>
+        <BLANKLINE>
+        >>> test_content = "Content <table> </table>"
+        >>> modified, html_tables = extract_and_mark_html_tables(test_content)
+        >>> modified == test_content
+        True
+        >>> len(html_tables) == 0
+        True
+        >>> test_content = "Table1\\n    <table><thead>Test1</thead>    </table>\\n\\nTable2\\n  <table><thead>Test2</thead></table>\\n\\n"
+        >>> modified, html_tables = extract_and_mark_html_tables(test_content)
+        >>> print(html_tables)
+        TIDOCS_REPLACE_TABLE_0
+        <BLANKLINE>
+        <table><thead>Test1</thead>    </table>
+        <BLANKLINE>
+        TIDOCS_REPLACE_TABLE_1
+        <BLANKLINE>
+        <table><thead>Test2</thead></table>
+        <BLANKLINE>
+        <BLANKLINE>
+        >>> print(modified)
+        Table1
+            TIDOCS_REPLACE_TABLE_0
+        <BLANKLINE>
+        Table2
+          TIDOCS_REPLACE_TABLE_1
+        <BLANKLINE>
+        <BLANKLINE>
     """
     TABLE_MARKER_TEMPLATE = "TIDOCS_REPLACE_TABLE_{}"
-    table_pattern = re.compile(r"<table>.*?</table>", re.DOTALL)
+    # Capture whitespace between newline and table
+    table_pattern = re.compile(r"\n(\s*?)(<table>.*?</table>)", re.DOTALL)
 
-    # Find all tables in the content
-    tables = table_pattern.findall(content)
+    # Find all tables and their positions along with whitespace
+    tables = []
+    for match in table_pattern.finditer(content):
+        whitespace = match.group(1)
+        table = match.group(2)
+        tables.append((whitespace, table, match.start()))
 
     # Initialize result containers
     extracted_tables = []
     modified_content = content
 
-    # Process each table
-    for i, table in enumerate(tables):
-        marker = TABLE_MARKER_TEMPLATE.format(i)
-        extracted_tables.append(f"{marker}\n\n{table}\n\n")
-        modified_content = modified_content.replace(table + "\n\n", f"{marker}\n\n")
+    # Process each table in reverse order to maintain correct positions
+    for i, (whitespace, table, _) in enumerate(reversed(tables)):
+        marker = TABLE_MARKER_TEMPLATE.format(len(tables) - i - 1)
+        extracted_tables.insert(0, f"{marker}\n\n{table}\n\n")
+        # Replace the table while preserving whitespace
+        modified_content = modified_content.replace(
+            f"\n{whitespace}{table}", f"\n{whitespace}{marker}"
+        )
 
     return modified_content, "".join(extracted_tables)
