@@ -157,6 +157,10 @@ Use the `tidocs merge` command to access a web interface for combining multiple 
 
 ## Changelog
 
+### [1.0.7] - 2024-12-23
+
+- Fix the issue that HTML tables are incorrectly extracted when `<table>` tags appear in code blocks or plain text that is not part of actual HTML markup.
+
 ### [1.0.6] - 2024-12-21
 
 - Fix the issue that hyperlinks become broken after merging Word documents due to incorrect relationship reference handling. ([#2](https://github.com/Oreoxmt/tidocs/issues/2))
