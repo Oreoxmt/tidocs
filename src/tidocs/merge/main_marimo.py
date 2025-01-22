@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.10.6"
+__generated_with = "0.10.15"
 app = marimo.App(app_title="TiDocs - Merge Release Notes")
 
 
@@ -29,17 +29,23 @@ def _(upload_area):
 
 
 @app.cell
-def _(is_valid_filename, md_files, mo):
-    for i in range(len(md_files.value)):
-        mo.stop(
-            not is_valid_filename(md_files.value[i].name),
-            mo.md(
-                f"#### {mo.icon('ic:round-error-outline', color='darkorange', inline=True)} Invalid format.\n\nPlease upload release notes in `release-x.y.z.md` format."
-            )
-            .center()
-            .callout(kind="danger"),
+def _(md_files, mo, validate_process_uploaded_files):
+    is_valid, result = validate_process_uploaded_files(md_files)
+
+    mo.stop(
+        not is_valid,
+        mo.md(
+            f"#### {mo.icon('ic:round-error-outline', color='darkorange', inline=True)} Invalid format."
+            "\n\n"
+            f"Please upload release notes in `release-x.y.z.md` format. "
+            "Invalid files:\n\n" + "\n".join(f"- {item}" for item in result)
         )
-    return (i,)
+        .center()
+        .callout(kind="danger"),
+    )
+
+    md_contents = result
+    return is_valid, md_contents, result
 
 
 @app.cell
@@ -68,21 +74,63 @@ def _(merged_doc, mo):
 
 @app.cell
 def _(
+    MarkdownToWordConfig,
     abstract_input,
     authors_input,
+    base_url_input,
     date_input,
-    generate_pandoc_metadata,
+    markdown_to_word,
+    md_contents,
+    mo,
     title_input,
     toc_title_input,
 ):
-    metadata = generate_pandoc_metadata(
-        title=title_input.value,
-        author=authors_input.value,
-        publication_date=date_input.value,
-        abstract=abstract_input.value,
-        toc_title=toc_title_input.value,
+    config_data = {
+        "metadata": {
+            "title": None,
+            "author": None,
+            "abstract": None,
+            "abstract-title": None,
+            "date": date_input.value,
+            "toc-title": None,
+        },
+        "plugin": {
+            "remove_front_matter": True,
+            "replace_internal_links": base_url_input.value
+            if len(base_url_input.value) > 0
+            else False,
+            "extract_html_table": True,
+        },
+        "pandoc": {
+            "reference-doc": "bundled",
+            "resource-path": None,
+            "toc": True,
+            "toc-depth": 3,
+        },
+    }
+
+    if len(title_input.value) > 0:
+        config_data["metadata"]["title"] = title_input.value
+
+    if len(authors_input.value) > 0:
+        config_data["metadata"]["author"] = authors_input.value
+
+    if len(abstract_input.value) > 0:
+        config_data["metadata"]["abstract"] = abstract_input.value
+        config_data["metadata"]["abstract-title"] = ""
+
+    if toc_title_input.value is not None:
+        config_data["metadata"]["toc-title"] = toc_title_input.value
+
+    config = MarkdownToWordConfig(**config_data)
+    merged_doc_data = markdown_to_word(md_contents, config)
+
+    merged_doc = mo.download(
+        data=merged_doc_data,
+        filename="tidocs_generated_doc.docx",
+        label="Download Word Document",
     )
-    return (metadata,)
+    return config, config_data, merged_doc, merged_doc_data
 
 
 @app.cell
@@ -165,114 +213,96 @@ def _(mo):
 
 
 @app.cell
-def _(
-    base_url_input,
-    extract_and_mark_html_tables,
-    md_files,
-    metadata,
-    process_internal_links,
-    remove_front_matter,
-):
+def _(Union):
     import re
 
 
     def is_valid_filename(filename: str) -> bool:
-        """Validate uploaded files match release note pattern."""
+        """Validate if filename matches the release note pattern 'release-x.y.z.md'.
+
+        >>> is_valid_filename('release-1.2.3.md')
+        True
+        >>> is_valid_filename('release-10.20.30.md')
+        True
+        >>> is_valid_filename('release-1.2.3.txt')
+        False
+        >>> is_valid_filename('release-a.b.c.md')
+        False
+        >>> is_valid_filename("invalid-filename.md")
+        False
+        >>> is_valid_filename('')
+        False
+        """
         pattern = r"release-\d+\.\d+\.\d+\.md"
         return re.match(pattern, filename) is not None
 
 
     def extract_version(filename):
-        """Extract the version number from the filename"""
-        return tuple(map(int, filename.name.split("-")[1].split(".")[:-1]))
+        """Extract the version numbers from a release filename as a tuple.
+
+        >>> class MockFile:
+        ...     def __init__(self, name):
+        ...         self.name = name
+        >>> extract_version(MockFile("release-1.2.3.md"))
+        (1, 2, 3)
+        >>> extract_version("release-1.2.3.md")
+        (1, 2, 3)
+        >>> extract_version("release-10.20.30.md")
+        (10, 20, 30)
+        """
+        filename_str = filename if isinstance(filename, str) else filename.name
+        return tuple(map(int, filename_str.split("-")[1].split(".")[:-1]))
 
 
-    # Sort files by version number in descending order.
-    sorted_md_files = sorted(md_files.value, key=extract_version, reverse=True)
+    def validate_process_uploaded_files(md_files) -> (bool, Union[bytes, list]):
+        """Validate and process uploaded Markdown files based on their filenames and versions.
 
-    md_contents = metadata
-    for md_file in sorted_md_files:
-        md_contents += remove_front_matter(md_file.contents).decode("utf-8") + "\n"
+        This function handles both single and multiple Markdown file uploads. For multiple files, it validates filenames against the 'release-x.y.z.md' format and concatenates them in descending version order.
 
-    md_contents = process_internal_links(md_contents, base_url_input.value)
-    md_contents, table_contents = extract_and_mark_html_tables(md_contents)
+        Args:
+            md_files: An object containing uploaded Markdown files. It provides access to file names and contents.
+
+        Returns:
+            tuple: A pair containing:
+                - bool: True if processing succeeded, False if validation failed.
+                - Union[bytes, list]: Either:
+                    - bytes: Concatenated contents of all files if successful.
+                    - list: List of invalid filenames if validation failed.
+
+        Processing steps:
+            1. If only one file is uploaded, return its content without validating the file name.
+            2. If multiple files are uploaded:
+                - Validate file names against the `release-x.y.z.md` format.
+                - Return a list of invalid file names if any.
+                - Otherwise, sort the files by version number in descending order and concatenate their contents into a single file.
+        """
+        total_md_files = len(md_files.value)
+
+        if total_md_files == 1:
+            return (True, md_files.contents())
+
+        md_contents: bytes = b""
+        invalid_filenames = []
+
+        for i in range(total_md_files):
+            if not is_valid_filename(md_files.name(i)):
+                invalid_filenames.append(md_files.name(i))
+
+        if len(invalid_filenames) > 0:
+            return (False, invalid_filenames)
+
+        # Sort files by version number in descending order.
+        sorted_md_files = sorted(md_files.value, key=extract_version, reverse=True)
+        for md_file in sorted_md_files:
+            md_contents += md_file.contents + b"\n"
+
+        return (True, md_contents)
     return (
         extract_version,
         is_valid_filename,
-        md_contents,
-        md_file,
         re,
-        sorted_md_files,
-        table_contents,
+        validate_process_uploaded_files,
     )
-
-
-@app.cell
-def _(Pandoc, get_reference_doc, md_contents, mo, table_contents):
-    reference_doc = get_reference_doc()
-
-    pandoc = Pandoc()
-
-    md_doc_data, md_doc_err = pandoc.run(
-        [
-            "-o-",
-            f"--reference-doc={reference_doc}",
-            "--to=docx",
-            "--from=markdown",
-            "--toc=true",
-            "--toc-depth=3",
-            "--metadata=abstract-title:",
-        ],
-        md_contents.encode("utf-8"),
-    )
-
-    mo.stop(
-        md_doc_err.decode("utf-8") != "",
-        mo.md(
-            f"#### {mo.icon('ic:round-error-outline', color='darkorange', inline=True)} Failed to convert to Word.\n\n{md_doc_err.decode('utf-8')}"
-        )
-        .center()
-        .callout(kind="danger"),
-    )
-
-    table_doc_data, table_doc_err = Pandoc().run(
-        [
-            "-o-",
-            f"--reference-doc={reference_doc}",
-            "--to=docx",
-            "--from=html",
-        ],
-        table_contents.encode("utf-8"),
-    )
-
-    mo.stop(
-        table_doc_err.decode("utf-8") != "",
-        mo.md(
-            f"####{mo.icon('ic:round-error-outline', color='darkorange', inline=True)} Failed to convert to Word.\n\n{table_doc_err.decode('utf-8')}"
-        )
-        .center()
-        .callout(kind="danger"),
-    )
-    return (
-        md_doc_data,
-        md_doc_err,
-        pandoc,
-        reference_doc,
-        table_doc_data,
-        table_doc_err,
-    )
-
-
-@app.cell
-def _(md_doc_data, merge_documents, mo, table_doc_data):
-    merged_doc_data = merge_documents(md_doc_data, table_doc_data)
-
-    merged_doc = mo.download(
-        data=merged_doc_data,
-        filename="tidocs_generated_doc.docx",
-        label="Download Word Document",
-    )
-    return merged_doc, merged_doc_data
 
 
 @app.cell
@@ -297,26 +327,24 @@ def _(mo):
     return
 
 
+@app.cell(disabled=True)
+def test_func(extract_version, is_valid_filename, mo):
+    is_valid_filename
+    extract_version
+
+    import doctest
+
+    failures, success = doctest.testmod(verbose=True)
+    mo.md(f"Test Result:\n\nSuccess: {success}, Failures: {failures}")
+    return doctest, failures, success
+
+
 @app.cell
 def _():
-    from tidocs.markdown_handler import (
-        generate_pandoc_metadata,
-        remove_front_matter,
-        process_internal_links,
-        extract_and_mark_html_tables,
-    )
-    from tidocs.docx_handler import merge_documents
-    from tidocs.pandoc_wrapper import Pandoc
-    from tidocs.util import get_reference_doc
-    return (
-        Pandoc,
-        extract_and_mark_html_tables,
-        generate_pandoc_metadata,
-        get_reference_doc,
-        merge_documents,
-        process_internal_links,
-        remove_front_matter,
-    )
+    from typing import Union
+
+    from tidocs.markdown_to_word import MarkdownToWordConfig, markdown_to_word
+    return MarkdownToWordConfig, Union, markdown_to_word
 
 
 if __name__ == "__main__":
