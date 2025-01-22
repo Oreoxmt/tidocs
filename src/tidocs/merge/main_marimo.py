@@ -75,6 +75,9 @@ def _(merged_doc, mo):
 @app.cell
 def _(
     MarkdownToWordConfig,
+    PandocConfig,
+    PluginConfig,
+    WordMetadataConfig,
     abstract_input,
     authors_input,
     base_url_input,
@@ -85,44 +88,29 @@ def _(
     title_input,
     toc_title_input,
 ):
-    config_data = {
-        "metadata": {
-            "title": None,
-            "author": None,
-            "abstract": None,
-            "abstract-title": None,
-            "date": date_input.value,
-            "toc-title": None,
-        },
-        "plugin": {
-            "remove_front_matter": True,
-            "replace_internal_links": base_url_input.value
+    config = MarkdownToWordConfig(
+        metadata=WordMetadataConfig(
+            title=title_input.value if len(title_input.value) > 0 else None,
+            author=authors_input.value.split(",")
+            if len(authors_input.value) > 0
+            else None,
+            abstract=abstract_input.value
+            if len(abstract_input.value) > 0
+            else None,
+            abstract_title="",
+            toc_title=toc_title_input.value,
+            date=date_input.value.strftime("%Y%m%d"),
+        ),
+        plugin=PluginConfig(
+            remove_front_matter=True,
+            replace_internal_links=base_url_input.value
             if len(base_url_input.value) > 0
             else False,
-            "extract_html_table": True,
-        },
-        "pandoc": {
-            "reference-doc": "bundled",
-            "resource-path": None,
-            "toc": True,
-            "toc-depth": 3,
-        },
-    }
+            extract_html_table=True,
+        ),
+        pandoc=PandocConfig(reference_doc="bundled", toc=True, toc_depth=3),
+    )
 
-    if len(title_input.value) > 0:
-        config_data["metadata"]["title"] = title_input.value
-
-    if len(authors_input.value) > 0:
-        config_data["metadata"]["author"] = authors_input.value
-
-    if len(abstract_input.value) > 0:
-        config_data["metadata"]["abstract"] = abstract_input.value
-        config_data["metadata"]["abstract-title"] = ""
-
-    if toc_title_input.value is not None:
-        config_data["metadata"]["toc-title"] = toc_title_input.value
-
-    config = MarkdownToWordConfig(**config_data)
     merged_doc_data = markdown_to_word(md_contents, config)
 
     merged_doc = mo.download(
@@ -130,7 +118,7 @@ def _(
         filename="tidocs_generated_doc.docx",
         label="Download Word Document",
     )
-    return config, config_data, merged_doc, merged_doc_data
+    return config, merged_doc, merged_doc_data
 
 
 @app.cell
@@ -343,8 +331,21 @@ def test_func(extract_version, is_valid_filename, mo):
 def _():
     from typing import Union
 
-    from tidocs.markdown_to_word import MarkdownToWordConfig, markdown_to_word
-    return MarkdownToWordConfig, Union, markdown_to_word
+    from tidocs.markdown_to_word import (
+        WordMetadataConfig,
+        PluginConfig,
+        PandocConfig,
+        MarkdownToWordConfig,
+        markdown_to_word,
+    )
+    return (
+        MarkdownToWordConfig,
+        PandocConfig,
+        PluginConfig,
+        Union,
+        WordMetadataConfig,
+        markdown_to_word,
+    )
 
 
 if __name__ == "__main__":
