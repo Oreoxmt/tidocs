@@ -9,6 +9,7 @@ def generate_pandoc_metadata(
     author: Union[str, list[str], None] = None,
     publication_date: Union[str, date, datetime, None] = None,
     abstract: Optional[str] = None,
+    abstract_title: Optional[str] = None,
     toc_title: Optional[str] = None,
 ) -> str:
     """
@@ -19,6 +20,7 @@ def generate_pandoc_metadata(
         author: Single author or multiple authors (comma-separated string or list)
         publication_date: Date in any format or datetime object
         abstract: Document abstract
+        abstract_title: Title for abstract
         toc_title: Title for table of contents
 
     Returns:
@@ -65,8 +67,12 @@ def generate_pandoc_metadata(
     if abstract:
         metadata["abstract"] = abstract
 
+    # Handle abstract_title
+    if abstract_title is not None:
+        metadata["abstract-title"] = abstract_title
+
     # Handle toc_title
-    if toc_title:
+    if toc_title is not None:
         metadata["toc-title"] = toc_title
 
     if not metadata:
