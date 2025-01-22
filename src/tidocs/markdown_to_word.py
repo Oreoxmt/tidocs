@@ -2,7 +2,7 @@ from datetime import date, datetime
 from enum import Enum
 from typing import Literal, Optional, Union
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import AliasGenerator, BaseModel, ConfigDict
 from tidocs.docx_handler import merge_documents
 from tidocs.markdown_handler import (
     extract_and_mark_html_tables,
@@ -44,7 +44,9 @@ def snake_to_dash(text: str) -> str:
 class WordMetadataConfig(BaseModel):
     """Configuration for Word document metadata fields."""
 
-    model_config = ConfigDict(alias_generator=snake_to_dash)
+    model_config = ConfigDict(
+        alias_generator=AliasGenerator(serialization_alias=snake_to_dash)
+    )
 
     title: Optional[str] = None
     author: Union[str, list[str], None] = None
@@ -65,7 +67,9 @@ class PluginConfig(BaseModel):
 class PandocConfig(BaseModel):
     """Configuration for Pandoc converter settings."""
 
-    model_config = ConfigDict(alias_generator=snake_to_dash)
+    model_config = ConfigDict(
+        alias_generator=AliasGenerator(serialization_alias=snake_to_dash)
+    )
 
     reference_doc: Union[Literal["bundled"], str, None] = "bundled"
     resource_path: Optional[str] = None
