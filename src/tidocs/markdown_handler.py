@@ -84,25 +84,51 @@ def generate_pandoc_metadata(
 
 
 def remove_front_matter(content: bytes) -> bytes:
-    """Remove YAML front matter from document content.
+    """Remove YAML front matter sections from document content.
+
+    Front matter sections are YAML blocks delimited by '---' markers at the start and end. The function removes all such sections from the document while preserving the rest of the content. Multiple front matter sections will all be removed.
+
+    Args:
+        content (bytes): The document content as bytes, potentially containing YAML front matter sections.
+
+    Returns:
+        bytes: The document content with all front matter sections removed. If no valid front matter sections are found, returns the original content unchanged.
 
     Examples:
+        >>> remove_front_matter(b"Test\\n-\\ntitle\\nTest")
+        b'Test\\n-\\ntitle\\nTest'
         >>> remove_front_matter(b"---\\ntitle:Test\\nsummary:Test\\n---\\nLine")
         b'Line'
         >>> remove_front_matter(b"Test\\n---\\ntitle:Test\\nsummary:Test\\n---\\nLine")
         b'Test\\nLine'
+        >>> remove_front_matter(b"Test\\n---\\ntitle:Test\\nsummary:Test\\n---\\nLine\\n---\\ntitle:Test\\nsummary:Test\\n---\\nLine")
+        b'Test\\nLine\\nLine'
     """
     front_matter = b"---\n"
+    result = content
+    position = 0
 
-    start_index = content.find(front_matter)
-    if start_index == -1:
-        return content
+    while True:
+        # Search for the next '---' marker starting from the current position
+        # Returns -1 if no more front matter sections are found
+        start_index = result.find(front_matter, position)
+        if start_index == -1:
+            break
 
-    end_index = content.find(front_matter, start_index + len(front_matter))
-    if end_index == -1:
-        return content
+        # Look for the closing '---' marker after the opening one
+        # Skip the length of front_matter to avoid finding the same marker
+        end_index = result.find(front_matter, start_index + len(front_matter))
+        if end_index == -1:
+            break
 
-    return content[:start_index] + content[end_index + len(front_matter) :]
+        # Extract content by concatenating:
+        # 1. Everything before the front matter (result[:start_index])
+        # 2. Everything after the front matter (result[end_index + len(front_matter):])
+        result = result[:start_index] + result[end_index + len(front_matter) :]
+        # Update position to start_index since the content has shifted
+        position = start_index
+
+    return result
 
 
 def process_internal_links(content: str, base_url: str) -> str:
