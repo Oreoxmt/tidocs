@@ -1,12 +1,11 @@
-from datetime import date, datetime
 from enum import Enum
 from typing import Literal, Optional, Union
+import yaml
 
 from pydantic import AliasGenerator, BaseModel, ConfigDict
 from tidocs.docx_handler import merge_documents
 from tidocs.markdown_handler import (
     extract_and_mark_html_tables,
-    generate_pandoc_metadata,
     process_internal_links,
     remove_front_matter,
 )
@@ -52,7 +51,7 @@ class WordMetadataConfig(BaseModel):
     author: Union[str, list[str], None] = None
     abstract: Optional[str] = None
     abstract_title: Optional[str] = None
-    date: Union[str, date, datetime, None] = None
+    date: Optional[str] = None
     toc_title: Optional[str] = None
 
 
@@ -75,7 +74,6 @@ class PandocConfig(BaseModel):
     resource_path: Optional[str] = None
     toc: Optional[bool] = None
     toc_depth: Optional[int] = None
-    toc_title: Optional[str] = None
 
 
 class MarkdownToWordConfig(BaseModel):
@@ -146,13 +144,15 @@ def generate_pandoc_options(
 def markdown_to_word(markdown_data: bytes, config: MarkdownToWordConfig) -> bytes:
     # Generates YAML metadata block from configuration
     metadata = config.metadata
-    yaml_metadata_block = generate_pandoc_metadata(
-        metadata.title,
-        metadata.author,
-        metadata.date,
-        metadata.abstract,
-        metadata.abstract_title,
-        metadata.toc_title,
+    yaml_metadata_block = (
+        "\n---\n"
+        + yaml.dump(
+            metadata.model_dump(by_alias=True),
+            sort_keys=False,
+            allow_unicode=True,
+            width=float("inf"),
+        ).removesuffix("\n")
+        + "\n---\n"
     )
     # Process Markdown content according to plugin settings:
     #  - Remove front matter if configured
