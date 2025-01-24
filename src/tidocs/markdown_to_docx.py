@@ -7,7 +7,6 @@ from tidocs.docx_handler import merge_documents
 from tidocs.markdown_handler import (
     extract_and_mark_html_tables,
     process_internal_links,
-    remove_front_matter,
 )
 from tidocs.pandoc_wrapper import Pandoc
 from tidocs.util import get_reference_doc
@@ -58,7 +57,6 @@ class WordMetadataConfig(BaseModel):
 class PluginConfig(BaseModel):
     """Configuration for Markdown processing plugins."""
 
-    remove_front_matter: bool = False
     replace_internal_links: Union[Literal[False], str] = False
     extract_html_table: bool = False
 
@@ -141,7 +139,16 @@ def generate_pandoc_options(
     return options
 
 
-def markdown_to_word(markdown_data: bytes, config: MarkdownToWordConfig) -> bytes:
+def markdown_to_docx(markdown_data: bytes, config: MarkdownToWordConfig) -> bytes:
+    """Convert Markdown content to a Word document in DOCX format.
+
+    Args:
+        markdown_data (bytes): Raw Markdown content as bytes.
+        config (MarkdownToWordConfig): Configuration for the conversion process.
+
+    Returns:
+        bytes: The generated Word document as bytes.
+    """
     # Generates YAML metadata block from configuration
     metadata = config.metadata
     yaml_metadata_block = (
@@ -158,10 +165,7 @@ def markdown_to_word(markdown_data: bytes, config: MarkdownToWordConfig) -> byte
     #  - Remove front matter if configured
     #  - Process internal links
     #  - Extract HTML tables if enabled
-    md_contents = yaml_metadata_block
-    if config.plugin.remove_front_matter:
-        md_contents += remove_front_matter(markdown_data).decode("utf-8") + "\n"
-
+    md_contents = markdown_data.decode("utf-8") + "\n"
     table_contents = ""
     if config.plugin.replace_internal_links is not False:
         md_contents = process_internal_links(
@@ -169,6 +173,8 @@ def markdown_to_word(markdown_data: bytes, config: MarkdownToWordConfig) -> byte
         )
     if config.plugin.extract_html_table:
         md_contents, table_contents = extract_and_mark_html_tables(md_contents)
+
+    md_contents += yaml_metadata_block
     # Configure and run pandoc
     pandoc = Pandoc()
     pandoc_md_doc_options = generate_pandoc_options(config.pandoc, "md_doc")

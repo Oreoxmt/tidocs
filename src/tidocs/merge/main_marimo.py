@@ -82,7 +82,7 @@ def _(
     authors_input,
     base_url_input,
     date_input,
-    markdown_to_word,
+    markdown_to_docx,
     md_contents,
     mo,
     title_input,
@@ -102,7 +102,6 @@ def _(
             date=date_input.value.strftime("%Y%m%d"),
         ),
         plugin=PluginConfig(
-            remove_front_matter=True,
             replace_internal_links=base_url_input.value
             if len(base_url_input.value) > 0
             else False,
@@ -111,7 +110,7 @@ def _(
         pandoc=PandocConfig(reference_doc="bundled", toc=True, toc_depth=3),
     )
 
-    merged_doc_data = markdown_to_word(md_contents, config)
+    merged_doc_data = markdown_to_docx(md_contents, config)
 
     merged_doc = mo.download(
         data=merged_doc_data,
@@ -201,7 +200,7 @@ def _(mo):
 
 
 @app.cell
-def _(Union):
+def _(Union, remove_front_matter):
     import re
 
 
@@ -282,7 +281,7 @@ def _(Union):
         # Sort files by version number in descending order.
         sorted_md_files = sorted(md_files.value, key=extract_version, reverse=True)
         for md_file in sorted_md_files:
-            md_contents += md_file.contents + b"\n"
+            md_contents += remove_front_matter(md_file.contents) + b"\n"
 
         return (True, md_contents)
     return (
@@ -331,12 +330,13 @@ def test_func(extract_version, is_valid_filename, mo):
 def _():
     from typing import Union
 
-    from tidocs.markdown_to_word import (
+    from tidocs.markdown_handler import remove_front_matter
+    from tidocs.markdown_to_docx import (
         WordMetadataConfig,
         PluginConfig,
         PandocConfig,
         MarkdownToWordConfig,
-        markdown_to_word,
+        markdown_to_docx,
     )
     return (
         MarkdownToWordConfig,
@@ -344,7 +344,8 @@ def _():
         PluginConfig,
         Union,
         WordMetadataConfig,
-        markdown_to_word,
+        markdown_to_docx,
+        remove_front_matter,
     )
 
 

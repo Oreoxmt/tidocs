@@ -1,3 +1,3 @@
-from tidocs.markdown_to_word import markdown_to_word
+from tidocs.markdown_to_docx import markdown_to_docx
 
-__all__ = ["markdown_to_word"]
+__all__ = ["markdown_to_docx"]
