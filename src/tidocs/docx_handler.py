@@ -10,7 +10,8 @@ def merge_word_docs_with_tables(
     marker_text: str = "TIDOCS_REPLACE_TABLE",
 ) -> bytes:
     """
-    Merges tables from one Word document into another at specified marker locations, preserving hyperlinks and other document relationships.
+    Merges tables from one Word document into another at specified marker locations,
+    preserving hyperlinks, list formatting, and other document relationships.
 
     Args:
         main_doc_data (bytes): The main document binary data
@@ -59,6 +60,25 @@ def merge_word_docs_with_tables(
                     old_rid = hyperlink.get(qn("r:id"))
                     if old_rid in rel_map:
                         hyperlink.set(qn("r:id"), rel_map[old_rid])
+
+                # Preserve list formatting in the table
+                for paragraph in table_copy.xpath(".//w:p"):
+                    num_pr = paragraph.xpath(".//w:numPr")
+                    if num_pr:
+                        # Ensure numbering properties are preserved
+                        for num in num_pr:
+                            ilvl = num.xpath(".//w:ilvl")
+                            if ilvl:
+                                # Ensure list level is preserved
+                                ilvl[0].set(
+                                    qn("w:val"), "0"
+                                )  # Set list level to 0 (unordered list)
+                            num_id = num.xpath(".//w:numId")
+                            if num_id:
+                                # Ensure numbering ID is preserved
+                                num_id[0].set(
+                                    qn("w:val"), "1"
+                                )  # Set numbering ID to 1 (unordered list)
 
                 tables_to_insert[current_heading] = table_copy
 
