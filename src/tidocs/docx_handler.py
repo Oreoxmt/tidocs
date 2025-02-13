@@ -39,6 +39,34 @@ def merge_word_docs_with_tables(
             )
             rel_map[rel_id] = new_rel_id
 
+    main_numbering = main_doc.part.numbering_part.element
+    table_numbering = table_doc.part.numbering_part.element
+
+    # Create mapping for abstract numbering IDs
+    abstract_num_map = {}
+
+    # Copy abstract numbering definitions with new IDs
+    for abstract_num in table_numbering.xpath(".//w:abstractNum"):
+        old_abstract_id = abstract_num.get(qn("w:abstractNumId"))
+        new_abstract_id = str(100000 + int(old_abstract_id))
+        abstract_num.set(qn("w:abstractNumId"), new_abstract_id)
+        abstract_num_map[old_abstract_id] = new_abstract_id
+        main_numbering.append(abstract_num)
+
+    # Copy and update concrete numbering instances
+    for num in table_numbering.xpath(".//w:num"):
+        old_num_id = num.get(qn("w:numId"))
+        new_num_id = str(100000 + int(old_num_id))
+        num.set(qn("w:numId"), new_num_id)
+
+        # Update abstract numbering reference
+        abstract_num_id = num.xpath(".//w:abstractNumId")[0]
+        old_abstract_ref = abstract_num_id.get(qn("w:val"))
+        if old_abstract_ref in abstract_num_map:
+            abstract_num_id.set(qn("w:val"), abstract_num_map[old_abstract_ref])
+
+        main_numbering.append(num)
+
     # Find all tables in the table document
     tables_to_insert = {}
     current_heading = None
@@ -67,18 +95,9 @@ def merge_word_docs_with_tables(
                     if num_pr:
                         # Ensure numbering properties are preserved
                         for num in num_pr:
-                            ilvl = num.xpath(".//w:ilvl")
-                            if ilvl:
-                                # Ensure list level is preserved
-                                ilvl[0].set(
-                                    qn("w:val"), "0"
-                                )  # Set list level to 0 (unordered list)
                             num_id = num.xpath(".//w:numId")
                             if num_id:
-                                # Ensure numbering ID is preserved
-                                num_id[0].set(
-                                    qn("w:val"), "1"
-                                )  # Set numbering ID to 1 (unordered list)
+                                num_id[0].set(qn("w:val"), f"{num_id[0].val + 100000}")
 
                 tables_to_insert[current_heading] = table_copy
 
