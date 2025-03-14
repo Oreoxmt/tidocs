@@ -4,11 +4,155 @@ TiDocs is a toolkit that streamlines TiDB documentation workflows. It specialize
 
 ## Installation
 
-To avoid conflicts with your existing Python environment, install `tidocs` using [pipx](https://github.com/pypa/pipx#install-pipx):
+To prevent conflicts with your existing Python environment, install `tidocs` using [pipx](https://github.com/pypa/pipx#install-pipx):
 
 ```bash
 pipx install tidocs
 ```
+
+## Convert Markdown files to DOCX documents (New in v1.1.0)
+
+The `tidocs.markdown_to_docx.markdown_to_docx(markdown_data, config)` function converts Markdown content into a Microsoft Word document (DOCX format). It preserves complex formatting and allows customization through a configuration object.
+
+### Parameters
+
+* `markdown_data`: binary content of your Markdown file.
+
+    Read a Markdown file using `rb` mode:
+
+    ```python
+    with open("input.md", "rb") as f:
+        markdown_content = f.read()
+    ```
+
+* `config`: conversion settings object containing three configuration sections:
+
+    - `metadata`: controls document metadata and presentation. For more information, see [`metadata`](#metadata).
+    - `plugin`: controls document processing behavior. For more information, see [`plugin`](#plugin).
+    - `pandoc`: controls the underlying Pandoc converter. For more information, see [`pandoc`](#pandoc).
+
+    Create from a Python dictionary or JSON file:
+
+    ```python
+    # From Python object
+    from tidocs.markdown_to_docx import MarkdownToWordConfig
+
+    config = MarkdownToWordConfig(
+        metadata={...},
+        plugin={...},
+        pandoc={...}
+    )
+
+    # From JSON file
+    import json
+
+    with open("config.json", "r") as f:
+        config_data = json.load(f)
+    config = MarkdownToWordConfig(**config_data)
+    ```
+
+### Usage example
+
+The following example shows how to convert a Markdown file to a Word document. You can find the complete source code in the [`examples/markdown_to_docx`](https://github.com/Oreoxmt/tidocs/tree/main/examples/markdown_to_docx) directory.
+
+Python code example ([`demo.py`](https://github.com/Oreoxmt/tidocs/tree/main/examples/markdown_to_docx/demo.py)):
+
+```python
+import json
+from pathlib import Path
+
+from tidocs.markdown_to_docx import MarkdownToWordConfig, markdown_to_docx
+
+if __name__ == "__main__":
+    # Define paths for config, input, and output files
+    src_path = Path(__file__).resolve().parent
+    config_json = src_path / "config.json"
+    input_md = src_path / "input.md"
+    output_docx = src_path / "output.docx"
+
+    print(f"Loading configuration from: {config_json}")
+    # Load configuration
+    with config_json.open("r") as f:
+        config = json.load(f)
+
+    # Convert Markdown to Word using the configuration
+    markdown_content = input_md.read_bytes()
+    word_content = markdown_to_docx(markdown_content, MarkdownToWordConfig(**config))
+    output_docx.write_bytes(word_content)
+    print(f"Conversion complete. Output saved to: {output_docx}")
+```
+
+Sample configuration file ([`config.json`](https://github.com/Oreoxmt/tidocs/tree/main/examples/markdown_to_docx/config.json)):
+
+```json
+{
+  "metadata": {
+    "title": "Document Title",
+    "author": ["Author 1", "Author 2"],
+    "abstract": "This is abstract.",
+    "abstract_title": "Abstract",
+    "date": "20250101",
+    "toc_title": "Table of Contents"
+  },
+  "plugin": {
+    "replace_internal_links": "https://oreo.life/",
+    "extract_html_table": true
+  },
+  "pandoc": {
+    "reference_doc": "/Users/test/tidocs/examples/markdown_to_docx/custom-reference.docx",
+    "resource_path": ".:/Users/test/tidocs/examples/markdown_to_docx/",
+    "toc": true,
+    "toc_depth": 3
+  }
+}
+```
+
+Comparison of Markdown inputs and Word outputs:
+
+| Input (Markdown) | Configuration | Output (Word) |
+|------------------|---------------|---------------|
+| - | `metadata` | ![Output (metadata)](https://github.com/Oreoxmt/tidocs/tree/main/images/example/markdown_to_docx_output_metadata.png) |
+| ![Input (TOC)](https://github.com/Oreoxmt/tidocs/tree/main/images/example/markdown_to_docx_input_toc.png) | `pandoc.toc = true` and `pandoc.toc_depth = 3` | ![Output (TOC)](https://github.com/Oreoxmt/tidocs/tree/main/images/example/markdown_to_docx_output_toc.png) |
+| ![Input (HTML Table)](https://github.com/Oreoxmt/tidocs/tree/main/images/example/markdown_to_docx_input_table.png) | `plugin.extract_html_table = true` | ![Output (HTML Table)](https://github.com/Oreoxmt/tidocs/tree/main/images/example/markdown_to_docx_output_table.png) |
+| `[link text](/intro.md)` | `plugin.replace_internal_links = "https://oreo.life/"` | `<a href="https://oreo.life/intro">link text</a>` |
+| `![image text](test.png)` | `pandoc.resource_path` | ![Output (image)](https://github.com/Oreoxmt/tidocs/tree/main/images/example/markdown_to_docx_output_image.png) |
+
+### Configuration options
+
+You can customize the conversion process using the following configuration sections.
+
+#### `metadata`
+
+Controls document metadata and presentation:
+
+| Option           | Type        | Default | Description                        |
+|-----------------|------------|---------|------------------------------------|
+| `title`         | string      | `None`  | Sets the document title.                     |
+| `author`        | string or list | `None`  | Specifies one or more document authors. For example: `"Author"` or `["Author 1", "Author 2"]`.                 |
+| `abstract`      | string      | `None`  | Sets the document abstract.                  |
+| `abstract_title` | string     | `None`  | Sets the heading for abstract section.     |
+| `date`          | string      | `None`  | Sets the document date.                      |
+| `toc_title`     | string      | `None`  | Sets the heading for table of contents.    |
+
+#### `plugin`
+
+Controls document processing behavior:
+
+| Option                   | Type           | Default | Description                                                             |
+|--------------------------|---------------|---------|-------------------------------------------------------------------------|
+| `replace_internal_links` | boolean or string | `False` | Converts internal links to external format when set to a URL base. For example: `false` or `https://www.example.com`      |
+| `extract_html_table`     | boolean        | `False` | Controls whether to enable special handling for HTML tables.                                |
+
+#### `pandoc`
+
+Controls the underlying Pandoc converter:
+
+| Option          | Type    | Default     | Description                                                                 |
+|----------------|---------|-------------|-----------------------------------------------------------------------------|
+| `reference_doc` | string  | `"bundled"` | Specifies the template for the generated Word document.                                   |
+| `resource_path` | string  | `None`      | Sets search paths for images and other resources. For more details, see [Pandoc documentation: `--resource-path`](https://pandoc.org/MANUAL.html#option--resource-path). |
+| `toc`          | boolean | `None`      | Controls whether to enable automatic table of contents generation.                             |
+| `toc_depth`    | integer | `None`      | Specifies the number of heading levels in the table of contents.            |
 
 ## Merge Release Notes (`tidocs merge`)
 
@@ -156,6 +300,11 @@ Use the `tidocs merge` command to access a web interface for combining multiple 
     4. [Export Word document as PDF](https://support.microsoft.com/en-us/office/export-word-document-as-pdf-4e89b30d-9d7d-4866-af77-3af5536b974c).
 
 ## Changelog
+
+### [1.1.0] - 2025-03-14
+
+- Support converting Markdown files to Word documents using `tidocs.markdown_to_docx()`.
+- Skip filename validation for single-file uploads in `tidocs merge`.
 
 ### [1.0.7] - 2024-12-23
 

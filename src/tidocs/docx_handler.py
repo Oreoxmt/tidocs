@@ -10,7 +10,8 @@ def merge_word_docs_with_tables(
     marker_text: str = "TIDOCS_REPLACE_TABLE",
 ) -> bytes:
     """
-    Merges tables from one Word document into another at specified marker locations, preserving hyperlinks and other document relationships.
+    Merges tables from one Word document into another at specified marker locations,
+    preserving hyperlinks, list formatting, and other document relationships.
 
     Args:
         main_doc_data (bytes): The main document binary data
@@ -38,6 +39,34 @@ def merge_word_docs_with_tables(
             )
             rel_map[rel_id] = new_rel_id
 
+    main_numbering = main_doc.part.numbering_part.element
+    table_numbering = table_doc.part.numbering_part.element
+
+    # Create mapping for abstract numbering IDs
+    abstract_num_map = {}
+
+    # Copy abstract numbering definitions with new IDs
+    for abstract_num in table_numbering.xpath(".//w:abstractNum"):
+        old_abstract_id = abstract_num.get(qn("w:abstractNumId"))
+        new_abstract_id = str(100000 + int(old_abstract_id))
+        abstract_num.set(qn("w:abstractNumId"), new_abstract_id)
+        abstract_num_map[old_abstract_id] = new_abstract_id
+        main_numbering.append(abstract_num)
+
+    # Copy and update concrete numbering instances
+    for num in table_numbering.xpath(".//w:num"):
+        old_num_id = num.get(qn("w:numId"))
+        new_num_id = str(100000 + int(old_num_id))
+        num.set(qn("w:numId"), new_num_id)
+
+        # Update abstract numbering reference
+        abstract_num_id = num.xpath(".//w:abstractNumId")[0]
+        old_abstract_ref = abstract_num_id.get(qn("w:val"))
+        if old_abstract_ref in abstract_num_map:
+            abstract_num_id.set(qn("w:val"), abstract_num_map[old_abstract_ref])
+
+        main_numbering.append(num)
+
     # Find all tables in the table document
     tables_to_insert = {}
     current_heading = None
@@ -59,6 +88,16 @@ def merge_word_docs_with_tables(
                     old_rid = hyperlink.get(qn("r:id"))
                     if old_rid in rel_map:
                         hyperlink.set(qn("r:id"), rel_map[old_rid])
+
+                # Preserve list formatting in the table
+                for paragraph in table_copy.xpath(".//w:p"):
+                    num_pr = paragraph.xpath(".//w:numPr")
+                    if num_pr:
+                        # Ensure numbering properties are preserved
+                        for num in num_pr:
+                            num_id = num.xpath(".//w:numId")
+                            if num_id:
+                                num_id[0].set(qn("w:val"), f"{num_id[0].val + 100000}")
 
                 tables_to_insert[current_heading] = table_copy
 

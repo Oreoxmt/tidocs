@@ -1,98 +1,14 @@
 import re
-from datetime import date, datetime
-from typing import Optional, Union
-import yaml
-
-
-def generate_pandoc_metadata(
-    title: Optional[str] = None,
-    author: Union[str, list[str], None] = None,
-    publication_date: Union[str, date, datetime, None] = None,
-    abstract: Optional[str] = None,
-    toc_title: Optional[str] = None,
-) -> str:
-    """
-    Generate a YAML metadata block for Pandoc documents.
-
-    Args:
-        title: Document title
-        author: Single author or multiple authors (comma-separated string or list)
-        publication_date: Date in any format or datetime object
-        abstract: Document abstract
-        toc_title: Title for table of contents
-
-    Returns:
-        str: Formatted YAML metadata block
-
-    Examples:
-        >>> generate_pandoc_metadata()
-        '\\n---\\n\\n---\\n'
-        >>> generate_pandoc_metadata(title="Sample Document")
-        '\\n---\\n"title": |-\\n  Sample Document\\n\\n---\\n'
-        >>> generate_pandoc_metadata(author="John Doe")
-        '\\n---\\n"author": |-\\n  John Doe\\n\\n---\\n'
-        >>> from datetime import date
-        >>> generate_pandoc_metadata(publication_date=date(2024, 1, 1))
-        '\\n---\\n"date": |-\\n  20240101\\n\\n---\\n'
-        >>> generate_pandoc_metadata(abstract="This is a sample abstract\\n\\nA new line.")
-        '\\n---\\n"abstract": |-\\n  This is a sample abstract\\n\\n  A new line.\\n\\n---\\n'
-    """
-    metadata = {}
-
-    # Handle title
-    if title:
-        metadata["title"] = title
-
-    # Handle author(s)
-    if author:
-        if isinstance(author, str):
-            # Split string by comma and strip whitespace
-            authors = [a.strip() for a in author.split(",")]
-            metadata["author"] = authors if len(authors) > 1 else authors[0]
-        elif isinstance(author, list):
-            metadata["author"] = author if len(author) > 1 else author[0]
-        else:
-            metadata["author"] = str(author)
-
-    # Handle date
-    if publication_date:
-        if isinstance(publication_date, (datetime, date)):
-            metadata["date"] = publication_date.strftime("%Y%m%d")
-        else:
-            metadata["date"] = str(publication_date)
-
-    # Handle abstract
-    if abstract:
-        metadata["abstract"] = abstract
-
-    # Handle toc_title
-    if toc_title:
-        metadata["toc-title"] = toc_title
-
-    if not metadata:
-        yaml_str = ""
-    else:
-        yaml_str = yaml.dump(
-            metadata,
-            sort_keys=False,
-            allow_unicode=True,
-            width=float("inf"),
-            default_style="|",
-        )
-    result = "\n---\n" + yaml_str + "\n---\n"
-    return result
 
 
 def remove_front_matter(content: bytes) -> bytes:
-    """Remove YAML front matter sections from document content.
-
-    Front matter sections are YAML blocks delimited by '---' markers at the start and end. The function removes all such sections from the document while preserving the rest of the content. Multiple front matter sections will all be removed.
+    """Remove the first YAML front matter block from document content.
 
     Args:
-        content (bytes): The document content as bytes, potentially containing YAML front matter sections.
+        content (bytes): Raw document content as bytes
 
     Returns:
-        bytes: The document content with all front matter sections removed. If no valid front matter sections are found, returns the original content unchanged.
+        bytes: Document content with the first front matter block removed. If no valid front matter block is found (missing delimiters or incorrect positioning), returns the original content unchanged.
 
     Examples:
         >>> remove_front_matter(b"Test\\n-\\ntitle\\nTest")
@@ -102,33 +18,19 @@ def remove_front_matter(content: bytes) -> bytes:
         >>> remove_front_matter(b"Test\\n---\\ntitle:Test\\nsummary:Test\\n---\\nLine")
         b'Test\\nLine'
         >>> remove_front_matter(b"Test\\n---\\ntitle:Test\\nsummary:Test\\n---\\nLine\\n---\\ntitle:Test\\nsummary:Test\\n---\\nLine")
-        b'Test\\nLine\\nLine'
+        b'Test\\nLine\\n---\\ntitle:Test\\nsummary:Test\\n---\\nLine'
     """
     front_matter = b"---\n"
-    result = content
-    position = 0
 
-    while True:
-        # Search for the next '---' marker starting from the current position
-        # Returns -1 if no more front matter sections are found
-        start_index = result.find(front_matter, position)
-        if start_index == -1:
-            break
+    start_index = content.find(front_matter)
+    if start_index == -1:
+        return content
 
-        # Look for the closing '---' marker after the opening one
-        # Skip the length of front_matter to avoid finding the same marker
-        end_index = result.find(front_matter, start_index + len(front_matter))
-        if end_index == -1:
-            break
+    end_index = content.find(front_matter, start_index + len(front_matter))
+    if end_index == -1:
+        return content
 
-        # Extract content by concatenating:
-        # 1. Everything before the front matter (result[:start_index])
-        # 2. Everything after the front matter (result[end_index + len(front_matter):])
-        result = result[:start_index] + result[end_index + len(front_matter) :]
-        # Update position to start_index since the content has shifted
-        position = start_index
-
-    return result
+    return content[:start_index] + content[end_index + len(front_matter) :]
 
 
 def process_internal_links(content: str, base_url: str) -> str:
