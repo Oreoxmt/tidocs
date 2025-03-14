@@ -1,0 +1,20 @@
+{
+  "metadata": {
+    "title": "Document Title",
+    "author": ["Author 1", "Author 2"],
+    "abstract": "This is abstract.",
+    "abstract_title": "Abstract",
+    "date": "20250101",
+    "toc_title": "Table of Contents"
+  },
+  "plugin": {
+    "replace_internal_links": "https://oreo.life/",
+    "extract_html_table": true
+  },
+  "pandoc": {
+    "reference_doc": "/Users/test/tidocs/examples/markdown_to_docx/custom-reference.docx",
+    "resource_path": ".:/Users/test/tidocs/examples/markdown_to_docx/",
+    "toc": true,
+    "toc_depth": 3
+  }
+}
