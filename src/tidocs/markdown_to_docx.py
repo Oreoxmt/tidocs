@@ -165,7 +165,7 @@ def markdown_to_docx(markdown_data: bytes, config: MarkdownToWordConfig) -> byte
     #  - Remove front matter if configured
     #  - Process internal links
     #  - Extract HTML tables if enabled
-    md_contents = markdown_data.decode("utf-8") + "\n"
+    md_contents = markdown_data.decode("utf-8")
     table_contents = ""
     if config.plugin.replace_internal_links is not False:
         md_contents = process_internal_links(
