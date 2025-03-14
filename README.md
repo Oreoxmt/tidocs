@@ -111,11 +111,11 @@ Comparison of Markdown inputs and Word outputs:
 
 | Input (Markdown) | Configuration | Output (Word) |
 |------------------|---------------|---------------|
-| - | `metadata` | ![Output (metadata)](https://github.com/Oreoxmt/tidocs/tree/main/images/example/markdown_to_docx_output_metadata.png) |
-| ![Input (TOC)](https://github.com/Oreoxmt/tidocs/tree/main/images/example/markdown_to_docx_input_toc.png) | `pandoc.toc = true` and `pandoc.toc_depth = 3` | ![Output (TOC)](https://github.com/Oreoxmt/tidocs/tree/main/images/example/markdown_to_docx_output_toc.png) |
-| ![Input (HTML Table)](https://github.com/Oreoxmt/tidocs/tree/main/images/example/markdown_to_docx_input_table.png) | `plugin.extract_html_table = true` | ![Output (HTML Table)](https://github.com/Oreoxmt/tidocs/tree/main/images/example/markdown_to_docx_output_table.png) |
+| - | `metadata` | ![Output (metadata)](https://raw.githubusercontent.com/Oreoxmt/tidocs/refs/heads/main/images/example/markdown_to_docx_output_metadata.png) |
+| ![Input (TOC)](https://raw.githubusercontent.com/Oreoxmt/tidocs/refs/heads/main/images/example/markdown_to_docx_input_toc.png) | `pandoc.toc = true` and `pandoc.toc_depth = 3` | ![Output (TOC)](https://raw.githubusercontent.com/Oreoxmt/tidocs/refs/heads/main/images/example/markdown_to_docx_output_toc.png) |
+| ![Input (HTML Table)](https://raw.githubusercontent.com/Oreoxmt/tidocs/refs/heads/main/images/example/markdown_to_docx_input_table.png) | `plugin.extract_html_table = true` | ![Output (HTML Table)](https://raw.githubusercontent.com/Oreoxmt/tidocs/refs/heads/main/images/example/markdown_to_docx_output_table.png) |
 | `[link text](/intro.md)` | `plugin.replace_internal_links = "https://oreo.life/"` | `<a href="https://oreo.life/intro">link text</a>` |
-| `![image text](test.png)` | `pandoc.resource_path` | ![Output (image)](https://github.com/Oreoxmt/tidocs/tree/main/images/example/markdown_to_docx_output_image.png) |
+| `![image text](test.png)` | `pandoc.resource_path` | ![Output (image)](https://raw.githubusercontent.com/Oreoxmt/tidocs/refs/heads/main/images/example/markdown_to_docx_output_image.png) |
 
 ### Configuration options
 
